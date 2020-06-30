@@ -1,0 +1,8 @@
+{# {{ dump(next) }} #}
+{# {{ dump(offset) }} #}
+{# {{ dump(limit) }} #}
+{# {{ dump(playlists) }} #}
+{{ dump(lists) }}
+{% for playlist in lists %}
+    <div>{{ playlist.name }} <a href="/playlists/tracks/{{ playlist.id }}">&nbsp;(tracks)</a></div>
+{% endfor %}

@@ -1,3 +1,23 @@
 #index:
 #    path: /
 #    controller: App\Controller\DefaultController::index
+app_index:
+  path: /
+  controller: App\Controller\HomeController::index
+
+app_playlists:
+  path: /playlists
+  controller: App\Controller\UserController::playlists
+app_playlists_tracks:
+  path: /playlists/tracks/{playlistId}
+  controller: App\Controller\UserController::playlistTracks
+  requirements:
+    playlistId: '\w+'
+
+app_login:
+  path: /login
+  controller: App\Controller\AuthController::login
+
+app_menu:
+  path: /menu
+  controller: App\Controller\UserController::menu
