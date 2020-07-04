@@ -1,12 +1,72 @@
-{# {{ dump(params) }} #}
-{# {{ dump(playlistTracks) }} #}
-{# {{ dump(tracks) }} #}
+{% extends "base.html.twig" %}
 
-{% for track in tracks %}
-    <div>
-        <header>{{ track.track.name }}
-        </header>
-        <img src="{{ track.track.album.images.2.url }}" />
+{% block body %}
+    <div class="container">
+        <div class="row">
+            <div class="col-sm">Album Image
+            </div>
+            <div class="col-sm">Track Name
+            </div>
+            <div class="col-sm">Track Popularity
+            </div>
+            <div class="col-sm">Danceability
+            </div>
+            <div class="col-sm">Energy
+            </div>
+            <div class="col-sm">Key
+            </div>
+            <div class="col-sm">Loudness
+            </div>
+            <div class="col-sm">Mode
+            </div>
+            <div class="col-sm">Speechiness
+            </div>
+            <div class="col-sm">Acousticness
+            </div>
+            <div class="col-sm">Instrumentalness
+            </div>
+            <div class="col-sm">Liveness
+            </div>
+            <div class="col-sm">Valence
+            </div>
+            <div class="col-sm">Tempo
+            </div>
+            <div class="col-sm">Time Signature
+            </div>
+        </div>
+        {% for track in tracks %}
+            <div class="row">
+                <div class="col-sm"><img src="{{ track.track.album.images.2.url }}" />
+                </div>
+                <div class="col-sm">{{ track.track.name }}
+                </div>
+                <div class="col-sm">{{ track.track.popularity }}
+                </div>
+                <div class="col-sm">{{ track.features.danceability }}
+                </div>
+                <div class="col-sm">{{ track.features.energy }}
+                </div>
+                <div class="col-sm">{{ track.features.key }}
+                </div>
+                <div class="col-sm">{{ track.features.loudness }}
+                </div>
+                <div class="col-sm">{{ track.features.mode }}
+                </div>
+                <div class="col-sm">{{ track.features.speechiness }}
+                </div>
+                <div class="col-sm">{{ track.features.acousticness }}
+                </div>
+                <div class="col-sm">{{ track.features.instrumentalness }}
+                </div>
+                <div class="col-sm">{{ track.features.liveness }}
+                </div>
+                <div class="col-sm">{{ track.features.valence }}
+                </div>
+                <div class="col-sm">{{ track.features.tempo }}
+                </div>
+                <div class="col-sm">{{ track.features.time_signature }}
+                </div>
+            </div>
+        {% endfor %}
     </div>
-    {# <div>{{ track.track }}</div> #}
-{% endfor %}
+{% endblock %}
