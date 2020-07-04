@@ -21,8 +21,8 @@ class UserController extends AbstractController
         $limit = 50;
         $offset = 0;
         $options = [
-            'limit' => $limit,
-            'offset' => $offset
+            'limit'     => $limit,
+            'offset'    => $offset
         ];
         $playlists = $api->getMyPlaylists($options);
         $lists = array_merge($lists, $playlists->items);
@@ -32,8 +32,8 @@ class UserController extends AbstractController
             $offset = explode('=', $nextQuery[0])[1];
             $limit = explode('=', $nextQuery[1])[1];
             $options = [
-                'limit' => $limit,
-                'offset' => $offset,
+                'limit'     => $limit,
+                'offset'    => $offset,
             ];
             $playlists = $api->getMyPlaylists($options);
             $lists = array_merge($lists, $playlists->items);
@@ -41,11 +41,11 @@ class UserController extends AbstractController
         sort($lists);
 
         return $this->render('playlists.html.twig', [
-            'playlists' => $playlists,
-            'next'  => $next,
-            'offset' => $offset,
-            'limit' => $limit,
-            'lists' => $lists
+            'playlists'     => $playlists,
+            'next'          => $next,
+            'offset'        => $offset,
+            'limit'         => $limit,
+            'lists'         => $lists
         ]);
     }
 
@@ -59,8 +59,8 @@ class UserController extends AbstractController
         $limit = 50;
         $offset = 0;
         $options = [
-            'limit' => $limit,
-            'offset' => $offset
+            'limit'     => $limit,
+            'offset'    => $offset
         ];
 
         $getParams = $request->attributes->get('_route_params');
@@ -74,36 +74,37 @@ class UserController extends AbstractController
             $offset = explode('=', $nextQuery[0])[1];
             $limit = explode('=', $nextQuery[1])[1];
             $options = [
-                'limit' => intval($limit),
-                'offset' => intval($offset),
+                'limit'     => intval($limit),
+                'offset'    => intval($offset),
             ];
             $playlistTracks = $api->getPlaylistTracks($playlistId, $options);
             $lists = array_merge($lists, $playlistTracks->items);
         }
         
-        $tracks = $lists;
-        $analysisLimit = 100;
-        $totalTracks = count($tracks);
-        $analysisBatch = [];
-        $analyzedTracks = [];
-        for ($i = 0; $i < $totalTracks; ++$i) {
-            $analysisBatch = [];
-            for ($j = 0; $j < $analysisLimit; ++$j) {
-                $analysisBatch[] = $tracks[$i];
-            }
-            $trackIds = array_map(function($e) {
-                return $e->track->id;
-            }, $analysisBatch);
-            $analyzedTracks[] = $api->getAudioFeatures($trackIds);
+        $tracks = array_map(function ($e) {
+            return $e->track;
+        }, $lists);
+
+        $trackIds = array_map(function ($e) {
+            return $e->id;
+        }, $tracks);
+
+        $trackFeatures = [];
+        $audioFeatures = $api->getAudioFeatures($trackIds)->audio_features;
+        foreach ($audioFeatures as $feature) {
+            $trackFeatures[$feature->id] = $feature;
+        }
+
+        $tracks_with_features = [];
+        foreach ($tracks as $track) {
+            $tracks_with_features[$track->id] = [
+                'track'     =>  $track,
+                'features'  =>  $trackFeatures[$track->id]
+            ];
         }
 
         return $this->render('playlist_tracks.html.twig', [
-            'params'    => $getParams,
-            'playlistId'    => $playlistId,
-            'playlistTracks'    => $playlistTracks,
-            'tracks'  => $tracks,
-            'analyzedTracks'  => $analyzedTracks,
-            'analysisBatch'  => $analysisBatch,
+            'tracks'    =>  $tracks_with_features
         ]);
     }
 
@@ -126,4 +127,5 @@ class UserController extends AbstractController
 
         return new Response("<a href='/playlists'>Playlists</a>");
     } 
+
    }
