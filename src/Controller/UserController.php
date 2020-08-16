@@ -8,17 +8,20 @@ use SpotifyWebAPI\SpotifyWebAPI;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
-
+use Knp\Component\Pager\Paginator;
 
 class UserController extends AbstractController
 {
+    const SPOTIFY_WEB_API_SONG_LIMIT = 50;
+    const SPOTIFY_WEB_API_FEATURE_LIMIT = 100;
+
     public function playlists(SessionInterface $session) {
         $api = new SpotifyWebAPI();
         $accessToken = $session->get('accessToken');
         $api->setAccessToken($accessToken);
         $lists = [];
         $next = null;
-        $limit = 50;
+        $limit = self::SPOTIFY_WEB_API_SONG_LIMIT;
         $offset = 0;
         $options = [
             'limit'     => $limit,
@@ -56,7 +59,7 @@ class UserController extends AbstractController
 
         $lists = [];
         $next = null;
-        $limit = 50;
+        $limit = self::SPOTIFY_WEB_API_SONG_LIMIT;
         $offset = 0;
         $options = [
             'limit'     => $limit,
@@ -66,7 +69,11 @@ class UserController extends AbstractController
         $getParams = $request->attributes->get('_route_params');
         $playlistId = $getParams['playlistId'];
         $playlistTracks = $api->getPlaylistTracks($playlistId, $options);
-        
+
+        $totalSongs = $playlistTracks->total;
+        $totalPages = ceil($totalSongs / self::SPOTIFY_WEB_API_SONG_LIMIT);
+        $currentPage = ceil(($playlistTracks->offset === 0) ? 1 : $playlistTracks->offset / self::SPOTIFY_WEB_API_SONG_LIMIT);
+
         $lists = array_merge($lists, $playlistTracks->items);
         while ($playlistTracks->next) {
             $next = parse_url($playlistTracks->next);
@@ -89,10 +96,14 @@ class UserController extends AbstractController
             return $e->id;
         }, $tracks);
 
+        $trackIdChunks = array_chunk($trackIds, self::SPOTIFY_WEB_API_FEATURE_LIMIT);
+
         $trackFeatures = [];
-        $audioFeatures = $api->getAudioFeatures($trackIds)->audio_features;
-        foreach ($audioFeatures as $feature) {
-            $trackFeatures[$feature->id] = $feature;
+        foreach ($trackIdChunks as $chunk) {
+            $audioFeatures = $api->getAudioFeatures($chunk)->audio_features;
+            foreach ($audioFeatures as $feature) {
+                $trackFeatures[$feature->id] = $feature;
+            }
         }
 
         $tracks_with_features = [];
@@ -103,8 +114,17 @@ class UserController extends AbstractController
             ];
         }
 
+        $target = range(1, $totalPages);
+        $paginationTemplate = 'playlist_tracks_pagination.html.twig';
+        $paginator = new Paginator();
+        $pagination = $paginator->paginate($target, $currentPage, 10);
+        $pagination->renderer = function($data) use ($paginationTemplate) {
+            return $this->renderView($paginationTemplate, $data);
+        };
+
         return $this->render('playlist_tracks.html.twig', [
-            'tracks'    =>  $tracks_with_features
+            'tracks'        =>  $tracks_with_features,
+            'pagination'    =>  $pagination,
         ]);
     }
 
