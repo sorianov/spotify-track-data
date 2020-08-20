@@ -1,0 +1,82 @@
+{% extends "base.html.twig" %}
+
+{% block body %}
+    {% if total_pages > 1%}
+    <nav aria-label="Playlist Track Pagination">
+        <ul class="pagination justify-content-center">
+            {% if current_page != 1 %}
+                <li class="page-item">
+                    <a class="page-link" href="/playlists/tracks/{{ playlist_id }}/1" tabindex="-1">First
+                    </a>
+                </li>
+            {% endif %}
+            {% if current_page == 1 %}
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" tabindex="-1">Previous
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item">
+                    <a class="page-link" href="/playlists/tracks/{{ playlist_id }}/{{ current_page - 1 }}" tabindex="-1">Previous
+                    </a>
+                </li>
+            {% endif %}
+            {% for i in 1..total_pages %}
+                <li class="page-item">
+                    <a class="page-link" href="/playlists/tracks/{{ playlist_id }}/{{ i }}">{{ i }}
+                    </a>
+                </li>
+            {% endfor %}
+            {% if current_page != total_pages %}
+                <li class="page-item">
+                    <a class="page-link" href="/playlists/tracks/{{ playlist_id }}/{{ current_page + 1 }}">Next
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <a class="page-link" href="#">Next</a>
+                </li>
+            {% endif %}
+            {% if current_page != total_pages %}
+                <li class="page-item">
+                    <a class="page-link" href="/playlists/tracks/{{ playlist_id }}/{{ total_pages }}" tabindex="-1">Last
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+    <script>
+        var features = {};
+        {% for track in tracks %}
+            features.{{ track.track.id }} = {
+                'danceability': {{ track.features.danceability }},
+                'energy': {{ track.features.energy }},
+                'key': {{ track.features.key }},
+                'loudness': {{ track.features.loudness }},
+                'mode': {{ track.features.mode }},
+                'speechiness': {{ track.features.speechiness }},
+                'acousticness': {{ track.features.acousticness }},
+                'instrumentalness': {{ track.features.instrumentalness }},
+                'liveness': {{ track.features.liveness }},
+                'valence': {{ track.features.valence }},
+                'tempo': {{ track.features.tempo }},
+                'time Signature': {{ track.features.time_signature }}
+            };
+        {% endfor %}
+    </script>
+    <div class="container">
+        <div class="card-columns">
+            {% for track in tracks %}
+                <div class="card">
+                    <img class="card-img-top" src="{{ track.track.album.images.1.url }}" alt="Album Image">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ track.track.name }}</h5>
+                        <p class="card-subtitle mb-2 text-muted">General Popularity: {{ track.track.popularity }} / 100</p>
+                        <a href="#" class="btn btn-primary">View Track Features</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

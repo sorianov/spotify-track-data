@@ -1,7 +1,51 @@
 {% extends "base.html.twig" %}
 
 {% block body %}
-    {{ pagination|raw }}
+    {% if total_pages > 1%}
+    <nav aria-label="Playlist Track Pagination">
+        <ul class="pagination justify-content-center">
+            {% if current_page != 1 %}
+                <li class="page-item">
+                    <a class="page-link" href="/playlists/tracks/{{ playlist_id }}/1" tabindex="-1">First
+                    </a>
+                </li>
+            {% endif %}
+            {% if current_page == 1 %}
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" tabindex="-1">Previous
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item">
+                    <a class="page-link" href="/playlists/tracks/{{ playlist_id }}/{{ current_page - 1 }}" tabindex="-1">Previous
+                    </a>
+                </li>
+            {% endif %}
+            {% for i in 1..total_pages %}
+                <li class="page-item">
+                    <a class="page-link" href="/playlists/tracks/{{ playlist_id }}/{{ i }}">{{ i }}
+                    </a>
+                </li>
+            {% endfor %}
+            {% if current_page != total_pages %}
+                <li class="page-item">
+                    <a class="page-link" href="/playlists/tracks/{{ playlist_id }}/{{ current_page + 1 }}">Next
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <a class="page-link" href="#">Next</a>
+                </li>
+            {% endif %}
+            {% if current_page != total_pages %}
+                <li class="page-item">
+                    <a class="page-link" href="/playlists/tracks/{{ playlist_id }}/{{ total_pages }}" tabindex="-1">Last
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
     <table class="table">
         <thead>
             <tr>
@@ -74,5 +118,4 @@
             {% endfor %}
         </tbody>
     </table>
-    {{ pagination|raw }}
 {% endblock %}
