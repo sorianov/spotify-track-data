@@ -6,7 +6,7 @@
         <ul class="pagination justify-content-center">
             {% if current_page != 1 %}
                 <li class="page-item">
-                    <a class="page-link" href="/playlists/tracks/{{ playlist_id }}/1" tabindex="-1">First
+                    <a class="page-link" href="/playlists/tracks/cards/{{ playlist_id }}/1" tabindex="-1">First
                     </a>
                 </li>
             {% endif %}
@@ -17,19 +17,26 @@
                 </li>
             {% else %}
                 <li class="page-item">
-                    <a class="page-link" href="/playlists/tracks/{{ playlist_id }}/{{ current_page - 1 }}" tabindex="-1">Previous
+                    <a class="page-link" href="/playlists/tracks/cards/{{ playlist_id }}/{{ current_page - 1 }}" tabindex="-1">Previous
                     </a>
                 </li>
             {% endif %}
             {% for i in 1..total_pages %}
-                <li class="page-item">
-                    <a class="page-link" href="/playlists/tracks/{{ playlist_id }}/{{ i }}">{{ i }}
-                    </a>
-                </li>
+                {% if i == current_page %}
+                    <li class="page-item active">
+                        <a class="page-link" href="/playlists/tracks/cards/{{ playlist_id }}/{{ i }}">{{ i }}
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="/playlists/tracks/cards/{{ playlist_id }}/{{ i }}">{{ i }}
+                        </a>
+                    </li>
+                {% endif %}
             {% endfor %}
             {% if current_page != total_pages %}
                 <li class="page-item">
-                    <a class="page-link" href="/playlists/tracks/{{ playlist_id }}/{{ current_page + 1 }}">Next
+                    <a class="page-link" href="/playlists/tracks/cards/{{ playlist_id }}/{{ current_page + 1 }}">Next
                     </a>
                 </li>
             {% else %}
@@ -39,7 +46,7 @@
             {% endif %}
             {% if current_page != total_pages %}
                 <li class="page-item">
-                    <a class="page-link" href="/playlists/tracks/{{ playlist_id }}/{{ total_pages }}" tabindex="-1">Last
+                    <a class="page-link" href="/playlists/tracks/cards/{{ playlist_id }}/{{ total_pages }}" tabindex="-1">Last
                     </a>
                 </li>
             {% endif %}
@@ -47,36 +54,77 @@
     </nav>
     {% endif %}
     <script>
-        var features = {};
-        {% for track in tracks %}
-            features.{{ track.track.id }} = {
-                'danceability': {{ track.features.danceability }},
-                'energy': {{ track.features.energy }},
-                'key': {{ track.features.key }},
-                'loudness': {{ track.features.loudness }},
-                'mode': {{ track.features.mode }},
-                'speechiness': {{ track.features.speechiness }},
-                'acousticness': {{ track.features.acousticness }},
-                'instrumentalness': {{ track.features.instrumentalness }},
-                'liveness': {{ track.features.liveness }},
-                'valence': {{ track.features.valence }},
-                'tempo': {{ track.features.tempo }},
-                'time Signature': {{ track.features.time_signature }}
-            };
-        {% endfor %}
+        let features = {
+            {% for track in tracks %}
+            "{{ track.track.id }}" : {
+                'danceability': "{{ track.features.danceability }}",
+                'energy': "{{ track.features.energy }}",
+                'key': "{{ track.features.key }}",
+                'loudness': "{{ track.features.loudness }}",
+                'mode': "{{ track.features.mode }}",
+                'speechiness': "{{ track.features.speechiness }}",
+                'acousticness': "{{ track.features.acousticness }}",
+                'instrumentalness': "{{ track.features.instrumentalness }}",
+                'liveness': "{{ track.features.liveness }}",
+                'valence': "{{ track.features.valence }}",
+                'tempo': "{{ track.features.tempo }}",
+                'timeSignature': "{{ track.features.time_signature }}"
+            },
+            {% endfor %}
+            'empty' : {}
+        };
+
+        function showFeatures(trackId) {
+            //console.log(trackId);
+            //console.log(features[trackId]);
+            const listId = 'list-' + trackId;
+            let list = $(`#${listId}`);
+            console.log(list, listId);
+            if (!$(`#${listId}`).length) {
+                console.log("I'm empty!")
+                $(`#${trackId}`).append('<ul id="' + listId + '" class="list-group list-group-flush">'
+                    + '<li class="list-group-item">Danceability ' + features[trackId].danceability + '</li>'
+                    + '<li class="list-group-item">Energy ' + features[trackId].energy + '</li>'
+                    + '<li class="list-group-item">Key ' + features[trackId].key + '</li>'
+                    + '<li class="list-group-item">Loudness ' + features[trackId].loudness + '</li>'
+                    + '<li class="list-group-item">Mode ' + features[trackId].mode + '</li>'
+                    + '<li class="list-group-item">Speechiness ' + features[trackId].speechiness + '</li>'
+                    + '<li class="list-group-item">Acousticness ' + features[trackId].acousticness + '</li>'
+                    + '<li class="list-group-item">Instrumentalness ' + features[trackId].instrumentalness + '</li>'
+                    + '<li class="list-group-item">Liveness ' + features[trackId].liveness + '</li>'
+                    + '<li class="list-group-item">Valence ' + features[trackId].valence + '</li>'
+                    + '<li class="list-group-item">Tempo ' + features[trackId].tempo + '</li>'
+                    + '<li class="list-group-item">Time Signature ' + features[trackId].timeSignature + '</li>'
+                    + '</ul>'
+                );
+            }
+
+            if (list) {
+                list.remove();
+            }
+        }
     </script>
     <div class="container">
-        <div class="card-columns">
-            {% for track in tracks %}
-                <div class="card">
-                    <img class="card-img-top" src="{{ track.track.album.images.1.url }}" alt="Album Image">
-                    <div class="card-body">
-                        <h5 class="card-title">{{ track.track.name }}</h5>
-                        <p class="card-subtitle mb-2 text-muted">General Popularity: {{ track.track.popularity }} / 100</p>
-                        <a href="#" class="btn btn-primary">View Track Features</a>
+        {% set k = cards_per_row %}
+        {% for track in tracks %}
+            {% if k == cards_per_row %}
+                <div class="row p-3">
+            {% endif %}
+                    <div class="col w-100">
+                        <div class="card">
+                            <img class="card-img-top" src="{{ track.track.album.images.1.url }}" alt="Album Image">
+                            <div id="{{ track.track.id }}" class="card-body">
+                                <h5 class="card-title">{{ track.track.name }}</h5>
+                                <p class="card-subtitle mb-2 text-muted">General Popularity: {{ track.track.popularity }} / 100</p>
+                                <a href="#" class="btn btn-primary" onclick="showFeatures('{{ track.track.id }}')">View Track Features</a>
+                            </div>
+                        </div>
                     </div>
+            {% set k = k - 1 %}
+            {% if k == 0 %}
                 </div>
-            {% endfor %}
-        </div>
+                {% set k = cards_per_row %}
+            {% endif %}
+        {% endfor %}
     </div>
 {% endblock %}

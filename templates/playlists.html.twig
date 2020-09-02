@@ -1,3 +1,29 @@
-{% for playlist in lists %}
-    <div>{{ playlist.name }} <a href="/playlists/tracks/{{ playlist.id }}/1">&nbsp;(tracks)</a></div>
-{% endfor %}
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <div class="container">
+        {% for playlist in lists %}
+            <div class="row border p-3">
+                <div class="col w-25 h-25 border-info">
+                    {% if playlist.images|length > 0 %}
+                            <img style="height: 50%; width: 50%;" src="{{ playlist.images.0.url }}">
+                    {% endif %}
+                </div>
+                <div class="col border-success">
+                    <div class="row p-3">
+                        <h1>{{ playlist.name }}
+                        </h1>
+                    </div>
+                    <div class="row p-3">
+                        <a class="btn btn-primary" href="/playlists/tracks/cards/{{ playlist.id }}/1">View as Cards
+                        </a>
+                    </div>
+                    <div class="row p-3">
+                        <a class="btn btn-primary" href="/playlists/tracks/table/{{ playlist.id }}/1">View as Table
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

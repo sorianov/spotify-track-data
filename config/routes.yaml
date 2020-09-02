@@ -8,11 +8,20 @@ app_index:
 app_playlists:
   path: /playlists
   controller: App\Controller\UserController::playlists
-app_playlists_tracks:
-  path: /playlists/tracks/{playlist_id}/{page}
-  controller: App\Controller\UserController::playlistTracks
+
+app_playlists_tracks_cards:
+  path: /playlists/tracks/cards/{playlist_id}/{page}
+  controller: App\Controller\UserController::playlistTracksCards
   requirements:
     playlistId: '\w+'
+    page: '\d+'
+
+app_playlists_tracks_table:
+  path: /playlists/tracks/table/{playlist_id}/{page}
+  controller: App\Controller\UserController::playlistTracksTable
+  requirements:
+    playlistId: '\w+'
+    page: '\d+'
 
 app_login:
   path: /login

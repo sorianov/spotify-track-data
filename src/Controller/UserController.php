@@ -12,7 +12,7 @@ use Symfony\Component\HttpFoundation\Request;
 class UserController extends AbstractController
 {
     const SPOTIFY_WEB_API_SONG_LIMIT = 50;
-    const SPOTIFY_WEB_API_FEATURE_LIMIT = 100;
+    const CARDS_PER_ROW = 2;
 
     public function playlists(SessionInterface $session) {
         $api = new SpotifyWebAPI();
@@ -51,18 +51,22 @@ class UserController extends AbstractController
         ]);
     }
 
-    public function playlistTracks(Request $request, SessionInterface $session) {
+    /**
+     * Retrieve tracks from a playlist using Spotify's API
+     *
+     * @param string $accessToken Access token given by Spotify API.
+     * @param string $playlistId  ID of the playlist to fetch tracks for.
+     * @param int    $currentPage 'Page' of the playlist. Will be used to calculate playlist offset.
+     * @return array
+     */
+    private function playlistTracks($accessToken, $playlistId, $currentPage) {
         $api = new SpotifyWebAPI();
-        $accessToken = $session->get('accessToken');
         $api->setAccessToken($accessToken);
-
-        $getParams = $request->attributes->get('_route_params');
-        $playlistId = $getParams['playlist_id'];
 
         $next = null;
         $options = [
             'limit'     => self::SPOTIFY_WEB_API_SONG_LIMIT,
-            'offset'    => ($request->attributes->getInt('page', 1) - 1) * self::SPOTIFY_WEB_API_SONG_LIMIT
+            'offset'    => ($currentPage - 1) * self::SPOTIFY_WEB_API_SONG_LIMIT
         ];
 
         $playlistTracks = $api->getPlaylistTracks($playlistId, $options);
@@ -89,13 +93,45 @@ class UserController extends AbstractController
         }
         $totalPages = ceil($playlistTracks->total / self::SPOTIFY_WEB_API_SONG_LIMIT);
 
+        return [
+            'tracks'        =>  $tracksWithFeatures,
+            'total_pages'   =>  $totalPages,
+        ];
+    }
+
+    public function playlistTracksCards(Request $request, SessionInterface $session)
+    {
+        $accessToken = $session->get('accessToken');
+        $currentPage = $request->attributes->getInt('page', 1);
+        $playlistId  = $request->attributes->getAlnum('playlist_id');
+
+        $trackData = $this->playlistTracks($accessToken, $playlistId, $currentPage);
+
         return $this->render('playlist_tracks_cards.html.twig', [
-            'tracks'                =>  $tracksWithFeatures,
+            'cards_per_row'         =>  self::CARDS_PER_ROW,
+            'tracks'                =>  $trackData['tracks'],
             'current_page'          =>  $request->attributes->getInt('page', 1),
-            'total_pages'           =>  $totalPages,
+            'total_pages'           =>  $trackData['total_pages'],
             'playlist_id'           =>  $request->attributes->getAlnum('playlist_id'),
         ]);
     }
+
+    public function playlistTracksTable(Request $request, SessionInterface $session)
+    {
+        $accessToken = $session->get('accessToken');
+        $currentPage = $request->attributes->getInt('page', 1);
+        $playlistId  = $request->attributes->getAlnum('playlist_id');
+
+        $trackData = $this->playlistTracks($accessToken, $playlistId, $currentPage);
+
+        return $this->render('playlist_tracks.html.twig', [
+            'tracks'                =>  $trackData['tracks'],
+            'current_page'          =>  $request->attributes->getInt('page', 1),
+            'total_pages'           =>  $trackData['total_pages'],
+            'playlist_id'           =>  $request->attributes->getAlnum('playlist_id'),
+        ]);
+    }
+
 
     public function menu(SessionInterface $session) {
         $clientId = $this->getParameter('app.spotify.client.id');
@@ -114,7 +150,7 @@ class UserController extends AbstractController
         $session->set('accessToken', $accessToken);
         $session->set('refreshToken', $refreshToken);
 
-        return new Response("<a href='/playlists'>Playlists</a>");
+        return new Response('<a href="/playlists">Playlists</a>');
     } 
 
    }
